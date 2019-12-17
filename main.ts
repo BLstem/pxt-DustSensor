@@ -14,7 +14,10 @@ namespace dustsensor {
         pins.digitalWritePin(enable, 1);
         basic.pause(.28);
         let sum = pins.analogReadPin(outputpin);
-        basic.pause(0.04)
+        for (let index = 0; index < 100; index++) {
+            if (pins.analogReadPin(outputpin) > sum) sum = pins.analogReadPin(outputpin)
+            basic.pause(0.04)
+        }
         pins.digitalWritePin(enable, 0);
         let voltage = (((sum / 4) * 3.3) / 1023) * 11;
         if (voltage < Voc) Voc = voltage;

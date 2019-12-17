@@ -19,7 +19,7 @@ namespace dustsensor {
             basic.pause(0.04)
         }
         pins.digitalWritePin(enable, 0);
-        let voltage = (((sum / 4) * 3.3) / 1023) * 11;
+        let voltage = (((sum) * 3.3) / 1023) * 11;
         if (voltage < Voc) Voc = voltage;
         let ret = ((voltage - Voc) / 5.8) * 1000;
 
@@ -36,6 +36,6 @@ namespace dustsensor {
             basic.pause(10);
         }
         pins.digitalWritePin(enable, 0);
-        Voc = (((sum / 4) * 3.3) / 1023) * 11;
+        Voc = (((sum) * 3.3) / 1023) * 11;
     }
 }

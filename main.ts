@@ -34,7 +34,7 @@ namespace dustsensor {
         let sum = pins.analogReadPin(outputpin);
         for (let index = 0; index < 100; index++) {
             let tmp = pins.analogReadPin(outputpin);
-            if (tmp > sum) sum = tmp
+            if (tmp < sum) sum = tmp
             basic.pause(0.04)
         }
         pins.digitalWritePin(enable, 0);

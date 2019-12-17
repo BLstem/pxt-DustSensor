@@ -2,6 +2,7 @@
 namespace dustsensor {
     let outputpin: number;
     let enable: number;
+    let Voc = 0;
     //% block="Set pin %pin_arg|ILED %iled"
     export function setPin(pin_arg: AnalogPin, iled: DigitalPin): void {
         outputpin = pin_arg;
@@ -19,10 +20,22 @@ namespace dustsensor {
         }
         pins.digitalWritePin(enable, 0);
         let voltage = (((sum / 4) * 3.3) / 1023) * 11;
-        let Voc = 0;
         if (voltage < Voc) Voc = voltage;
         let ret = ((voltage - Voc) / 5.8) * 1000;
 
         return ret;
+    }
+
+    //%block="calibration"
+    export function calibration(): void {
+        pins.digitalWritePin(enable, 1);
+        basic.pause(1);
+        let sum = 0;
+        for (let index = 0; index < 4; index++) {
+            sum += pins.analogReadPin(outputpin);
+            basic.pause(10);
+        }
+        pins.digitalWritePin(enable, 0);
+        Voc = (((sum / 4) * 3.3) / 1023) * 11;
     }
 }

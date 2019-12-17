@@ -1,65 +1,41 @@
-//% color=#0fbc11 icon="" block="dust sensor"
-namespace custom {
-    const cov_ratio: number = 70;
-    const no_dust_voltage: number = 400;
-    const sys_voltage: number = 5000;
-
-    let iled: DigitalPin;
-    let vout: AnalogPin;
-
-    function filter(m: number): number {
-        let flag: boolean = false;
-        let _buff: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        let sum: number;
-        let ret = m;
-
-        if (!flag) {
-            flag = true;
-            for (let i = 0; i < 10; i++) {
-                _buff[i] = m;
-                sum += _buff[i];
-            }
-        }
-        else {
-            sum -= _buff[0];
-            for (let i = 0; i < 9; i++) {
-                _buff[i] = _buff[i + 1];
-            }
-            _buff[9] = m;
-            sum += _buff[9];
-
-            ret = sum / 10;
-        }
-        //serial.writeLine("" + ret);
-        return Math.round(ret);
+//% color=#0fbc11 icon=""
+namespace dustsensor {
+    let outputpin: number;
+    let enable: number;
+    let Voc = 0;
+    //% block="Set pin %pin_arg|ILED %iled"
+    export function setPin(pin_arg: AnalogPin, iled: DigitalPin): void {
+        outputpin = pin_arg;
+        enable = iled;
     }
 
-    //%block="Initialize dust sensor ILED %Iled|AOUT %Vout"
-    export function init(Iled: DigitalPin, Vout: AnalogPin): void {
-        iled = Iled;
-        vout = Vout;
+    //% block="read pm2.5"
+    export function readingpm25(): number {
+        pins.digitalWritePin(enable, 1);
+        basic.pause(1);
+        let sum = 0;
+        for (let index = 0; index < 4; index++) {
+            sum += pins.analogReadPin(outputpin);
+            basic.pause(10);
+        }
+        pins.digitalWritePin(enable, 0);
+        let voltage = (((sum / 4) * 3.3) / 1023) * 11;
+        if (voltage < Voc) Voc = voltage;
+        let ret = ((voltage - Voc) / 5.8) * 1000;
+
+        return ret;
     }
 
-    //%block
-    export function reading(): number {
-        let density: number = 0;
-        let adcvalue: number = 0;
-        let voltage: number = 0;
-
-        pins.digitalWritePin(iled, 1);
-        control.waitMicros(280);
-        adcvalue = pins.analogReadPin(vout);
-        pins.digitalWritePin(iled, 0);
-
-        adcvalue = filter(adcvalue);
-
-        voltage = (sys_voltage / 1024) * adcvalue * 11;
-        serial.writeLine("voltage:" + voltage)
-
-        if (voltage >= no_dust_voltage) {
-            voltage -= no_dust_voltage;
-            density = voltage / cov_ratio;
+    //%block="calibration"
+    export function calibration(): void {
+        pins.digitalWritePin(enable, 1);
+        basic.pause(1);
+        let sum = 0;
+        for (let index = 0; index < 4; index++) {
+            sum += pins.analogReadPin(outputpin);
+            basic.pause(10);
         }
-        return density;
+        pins.digitalWritePin(enable, 0);
+        Voc = (((sum / 4) * 3.3) / 1023) * 11;
     }
 }

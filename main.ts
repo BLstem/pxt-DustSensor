@@ -15,7 +15,8 @@ namespace dustsensor {
         basic.pause(.28);
         let sum = pins.analogReadPin(outputpin);
         for (let index = 0; index < 100; index++) {
-            if (pins.analogReadPin(outputpin) > sum) sum = pins.analogReadPin(outputpin)
+            let tmp = pins.analogReadPin(outputpin);
+            if (tmp > sum) sum = tmp
             basic.pause(0.04)
         }
         pins.digitalWritePin(enable, 0);
@@ -31,9 +32,10 @@ namespace dustsensor {
         pins.digitalWritePin(enable, 1);
         basic.pause(.28);
         let sum = pins.analogReadPin(outputpin);
-        for (let index = 0; index < 4; index++) {
-            sum += pins.analogReadPin(outputpin);
-            basic.pause(10);
+        for (let index = 0; index < 100; index++) {
+            let tmp = pins.analogReadPin(outputpin);
+            if (tmp > sum) sum = tmp
+            basic.pause(0.04)
         }
         pins.digitalWritePin(enable, 0);
         Voc = (((sum) * 3.3) / 1023) * 11;

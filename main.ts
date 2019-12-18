@@ -12,14 +12,15 @@ namespace dustsensor {
     //% block="read pm2.5"
     export function readingpm25(): number {
         pins.digitalWritePin(enable, 1);
-        basic.pause(1);
-        let sum = 0;
-        for (let index = 0; index < 4; index++) {
-            sum += pins.analogReadPin(outputpin);
-            basic.pause(10);
+        basic.pause(.28);
+        let sum = pins.analogReadPin(outputpin);
+        for (let index = 0; index < 100; index++) {
+            let tmp = pins.analogReadPin(outputpin);
+            if (tmp > sum) sum = tmp
+            basic.pause(0.04)
         }
         pins.digitalWritePin(enable, 0);
-        let voltage = (((sum / 4) * 3.3) / 1023) * 11;
+        let voltage = (((sum) * 3.3) / 1023) * 11;
         if (voltage < Voc) Voc = voltage;
         let ret = ((voltage - Voc) / 5.8) * 1000;
 
@@ -29,13 +30,14 @@ namespace dustsensor {
     //%block="calibration"
     export function calibration(): void {
         pins.digitalWritePin(enable, 1);
-        basic.pause(1);
-        let sum = 0;
-        for (let index = 0; index < 4; index++) {
-            sum += pins.analogReadPin(outputpin);
-            basic.pause(10);
+        basic.pause(.28);
+        let sum = pins.analogReadPin(outputpin);
+        for (let index = 0; index < 100; index++) {
+            let tmp = pins.analogReadPin(outputpin);
+            if (tmp < sum) sum = tmp
+            basic.pause(0.04)
         }
         pins.digitalWritePin(enable, 0);
-        Voc = (((sum / 4) * 3.3) / 1023) * 11;
+        Voc = (((sum) * 3.3) / 1023) * 11;
     }
 }
